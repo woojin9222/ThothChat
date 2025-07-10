@@ -96,6 +96,21 @@ npm run dev
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+## 배포하기
+
+### Vercel 배포
+1. GitHub에 프로젝트 업로드 후
+2. [Vercel](https://vercel.com)에서 "New Project" 클릭
+3. GitHub 저장소 연결
+4. 배포 설정:
+   - Framework Preset: `Other`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+5. "Deploy" 클릭
+
+### 환경 변수 (필요시)
+- `NODE_ENV=production`
+
 ## 라이선스
 
 이 프로젝트는 MIT 라이선스 하에 배포됩니다.
