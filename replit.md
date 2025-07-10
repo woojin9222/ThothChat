@@ -23,7 +23,8 @@ Preferred communication style: Simple, everyday language.
 - **Runtime**: Node.js with Express.js framework
 - **Language**: TypeScript with ES modules
 - **WebSocket**: Native WebSocket implementation for real-time messaging
-- **Database**: Drizzle ORM with PostgreSQL (configured for Neon serverless)
+- **Database**: PostgreSQL with Drizzle ORM for persistent storage
+- **Database Connection**: Neon serverless PostgreSQL driver (@neondatabase/serverless)
 - **Session Management**: connect-pg-simple for PostgreSQL session storage
 - **Development**: tsx for TypeScript execution in development
 
@@ -43,7 +44,8 @@ Preferred communication style: Simple, everyday language.
 ### Backend Components
 - **Route Handlers**: REST API endpoints for rooms and messages
 - **WebSocket Server**: Real-time communication server with room management
-- **Storage Layer**: Abstract storage interface with in-memory implementation
+- **Storage Layer**: DatabaseStorage implementation with PostgreSQL persistence
+- **Database Connection**: Configured Drizzle ORM with connection pooling
 - **Middleware**: Request logging, JSON parsing, and error handling
 
 ### Shared Components
@@ -115,3 +117,18 @@ Preferred communication style: Simple, everyday language.
 - WebSocket server automatically adapts to HTTP/HTTPS protocols
 
 The application is designed for easy deployment on platforms supporting Node.js with PostgreSQL databases, with particular optimization for serverless PostgreSQL providers like Neon.
+
+## Recent Changes (July 10, 2025)
+
+### Database Integration Completed
+- ✓ Migrated from in-memory storage to PostgreSQL database
+- ✓ Configured Drizzle ORM with Neon serverless driver  
+- ✓ Added database tables: chat_rooms and chat_messages with proper relations
+- ✓ Updated storage layer to use DatabaseStorage instead of MemStorage
+- ✓ Applied database schema changes via drizzle-kit push
+- ✓ Verified persistent message storage and room management
+
+### Deployment Configuration Updates
+- Updated Vercel deployment settings for production builds
+- Created fallback entry point for serverless deployment
+- Configured static file serving for production environment
