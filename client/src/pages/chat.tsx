@@ -32,6 +32,7 @@ export default function Chat() {
   // Initialize WebSocket connection
   useEffect(() => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    // Always use the same host and port as the current page
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     const websocket = new WebSocket(wsUrl);
 
