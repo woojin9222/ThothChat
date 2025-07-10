@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -11,11 +12,23 @@ export const chatRooms = pgTable("chat_rooms", {
 
 export const chatMessages = pgTable("chat_messages", {
   id: serial("id").primaryKey(),
-  roomId: integer("room_id").notNull(),
+  roomId: integer("room_id").notNull().references(() => chatRooms.id),
   nickname: text("nickname").notNull(),
   message: text("message").notNull(),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
+
+// Relations
+export const chatRoomsRelations = relations(chatRooms, ({ many }) => ({
+  messages: many(chatMessages),
+}));
+
+export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+  room: one(chatRooms, {
+    fields: [chatMessages.roomId],
+    references: [chatRooms.id],
+  }),
+}));
 
 export const insertChatRoomSchema = createInsertSchema(chatRooms).pick({
   name: true,

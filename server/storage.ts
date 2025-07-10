@@ -1,4 +1,6 @@
 import { chatRooms, chatMessages, type ChatRoom, type InsertChatRoom, type ChatMessage, type InsertChatMessage } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Chat Rooms
@@ -13,95 +15,93 @@ export interface IStorage {
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
 }
 
-export class MemStorage implements IStorage {
-  private rooms: Map<number, ChatRoom>;
-  private messages: Map<number, ChatMessage>;
-  private currentRoomId: number;
-  private currentMessageId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.rooms = new Map();
-    this.messages = new Map();
-    this.currentRoomId = 1;
-    this.currentMessageId = 1;
-    
-    // Create default rooms
+    // Initialize default rooms if they don't exist
     this.initializeDefaultRooms();
   }
 
   private async initializeDefaultRooms() {
-    const defaultRooms = [
-      { name: "#1" },
-      { name: "#bigdt114" },
-      { name: "#news365" },
-      { name: "#앱짱닷컴" },
-      { name: "#JMR" },
-      { name: "#tpwhdsla" },
-      { name: "#아즈텍온라인" },
-      { name: "#ㅅㄹ" },
-      { name: "#직업마피아" },
-      { name: "#becle" },
-      { name: "#hh" },
-      { name: "#main" },
-      { name: "#totomantv" }
-    ];
+    try {
+      // Check if any rooms exist
+      const existingRooms = await db.select().from(chatRooms).limit(1);
+      
+      if (existingRooms.length === 0) {
+        const defaultRooms = [
+          { name: "#1" },
+          { name: "#bigdt114" },
+          { name: "#news365" },
+          { name: "#앱짱닷컴" },
+          { name: "#JMR" },
+          { name: "#tpwhdsla" },
+          { name: "#아즈텍온라인" },
+          { name: "#ㅅㄹ" },
+          { name: "#직업마피아" },
+          { name: "#becle" },
+          { name: "#hh" },
+          { name: "#main" },
+          { name: "#totomantv" }
+        ];
 
-    for (const roomData of defaultRooms) {
-      await this.createChatRoom(roomData);
+        for (const roomData of defaultRooms) {
+          await this.createChatRoom(roomData);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize default rooms:', error);
     }
   }
 
   async getChatRooms(): Promise<ChatRoom[]> {
-    return Array.from(this.rooms.values()).sort((a, b) => b.userCount - a.userCount);
+    const rooms = await db.select().from(chatRooms);
+    return rooms.sort((a, b) => b.userCount - a.userCount);
   }
 
   async getChatRoom(id: number): Promise<ChatRoom | undefined> {
-    return this.rooms.get(id);
+    const [room] = await db.select().from(chatRooms).where(eq(chatRooms.id, id));
+    return room || undefined;
   }
 
   async getChatRoomByName(name: string): Promise<ChatRoom | undefined> {
-    return Array.from(this.rooms.values()).find(room => room.name === name);
+    const [room] = await db.select().from(chatRooms).where(eq(chatRooms.name, name));
+    return room || undefined;
   }
 
   async createChatRoom(insertRoom: InsertChatRoom): Promise<ChatRoom> {
-    const id = this.currentRoomId++;
-    const room: ChatRoom = {
-      ...insertRoom,
-      id,
-      userCount: 0,
-      createdAt: new Date(),
-    };
-    this.rooms.set(id, room);
+    const [room] = await db
+      .insert(chatRooms)
+      .values(insertRoom)
+      .returning();
     return room;
   }
 
   async updateChatRoomUserCount(id: number, userCount: number): Promise<ChatRoom | undefined> {
-    const room = this.rooms.get(id);
-    if (room) {
-      room.userCount = userCount;
-      this.rooms.set(id, room);
-      return room;
-    }
-    return undefined;
+    const [room] = await db
+      .update(chatRooms)
+      .set({ userCount })
+      .where(eq(chatRooms.id, id))
+      .returning();
+    return room || undefined;
   }
 
   async getChatMessages(roomId: number, limit: number = 50): Promise<ChatMessage[]> {
-    return Array.from(this.messages.values())
-      .filter(message => message.roomId === roomId)
-      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
-      .slice(-limit);
+    const messages = await db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.roomId, roomId))
+      .orderBy(desc(chatMessages.timestamp))
+      .limit(limit);
+    
+    return messages.reverse(); // Return in chronological order
   }
 
   async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
-    const id = this.currentMessageId++;
-    const message: ChatMessage = {
-      ...insertMessage,
-      id,
-      timestamp: new Date(),
-    };
-    this.messages.set(id, message);
+    const [message] = await db
+      .insert(chatMessages)
+      .values(insertMessage)
+      .returning();
     return message;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
