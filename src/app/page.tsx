@@ -21,7 +21,7 @@ export default function Home() {
   );
 
   const loadMessages = async () => {
-    const res = await fetch("/api/messages", { cache: "no-store" });
+    const res = await fetch("/api/messages");
     if (!res.ok) return;
     const data = (await res.json()) as { messages: ChatMessage[] };
     setMessages(data.messages);
@@ -31,7 +31,7 @@ export default function Home() {
     void loadMessages();
     const timer = setInterval(() => {
       void loadMessages();
-    }, 1500);
+    }, 3000);
     return () => clearInterval(timer);
   }, []);
 
