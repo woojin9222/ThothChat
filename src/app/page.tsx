@@ -31,7 +31,7 @@ export default function Home() {
     void loadMessages();
     const timer = setInterval(() => {
       void loadMessages();
-    }, 3000);
+    }, 5000);
     return () => clearInterval(timer);
   }, []);
 

@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
   if (!nickname || !content) {
     return NextResponse.json(
-      { message: "nickname과 content는 필수입니다." },
+      { message: "nickname과 content는 공백만 입력할 수 없습니다." },
       { status: 400 },
     );
   }
